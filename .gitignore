@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+bitstamp-d.so
+bitstamp-d.dylib
+bitstamp-d.dll
+libbitstamp-d.a
+bitstamp-d.lib
+bitstamp-d-test-*
+*.exe
+*.o
+*.obj
+*.lst
