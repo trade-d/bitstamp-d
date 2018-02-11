@@ -4,6 +4,7 @@ import vibe.d;
 
 static struct BS
 {
+	///
 	struct TickerResult
 	{
 		string timestamp;
@@ -15,6 +16,76 @@ static struct BS
 		string high;
 		string ask;
 		string bid;
+	}
+
+	///
+	struct OrderStatus 
+	{
+		///
+		struct Transaction
+		{
+			///
+			string xrp;
+			///
+			string price;
+			///
+			string fee;
+			///
+			int type;
+			///
+			int tid;
+			///
+			string usd;
+			///
+			string datetime;
+		}
+
+		/// In Queue, Open or Finished.
+		string status;
+		///
+		Transaction[] transactions;
+	}
+
+	///
+	struct Transaction
+	{
+		///
+		float xrp_usd;
+		///
+		float btc;
+		///
+		string xrp;
+		///
+		float eur;
+		///
+		string fee;
+		///
+		string type;
+		///
+		int order_id;
+		///
+		string usd;
+		///
+		int id;
+		///
+		string datetime;
+	}
+
+	alias Transactions = Transaction[];
+
+	///
+	struct Order
+	{
+		///
+		string price;
+		///
+		string amount;
+		///
+		string type;
+		///
+		string datetime;
+		///
+		string id;
 	}
 }
 
@@ -33,9 +104,13 @@ interface BitstampPublicAPI
 interface BitstampPrivateAPI
 {
 	///
-	Json orderStatus(string id);
+	BS.OrderStatus orderStatus(int order_id);
 	///
-	Json transactions(string pair);
+	BS.Transactions transactions(string pair);
+	///
+	BS.Order sellMarket(string pari, float amount);
+	///
+	BS.Order buyMarket(string pari, float amount);
 }
 
 ///
@@ -72,47 +147,47 @@ final class Bitstamp : BitstampPublicAPI, BitstampPrivateAPI
 	}
 
 	///
-	Json orderStatus(string id)
+	BS.OrderStatus orderStatus(int order_id)
 	{
 		static immutable METHOD_URL = "/order_status/";
 
 		string[string] params;
-		params["id"] = id;
+		params["id"] = to!string(order_id);
 
-		return request!Json(METHOD_URL, params);
+		return request!(BS.OrderStatus)(METHOD_URL, params);
 	}
 
 	///
-	Json transactions(string pair)
+	BS.Transactions transactions(string pair)
 	{
 		static immutable METHOD_URL = "/v2/user_transactions/";
 
 		string[string] params;
 		params["limit"] = "1000";
 
-		return request!Json(METHOD_URL ~ pair ~ "/", params);
+		return request!(BS.Transactions)(METHOD_URL ~ pair ~ "/", params);
 	}
 
 	///
-	Json buyMarket(string pair, float amount)
+	BS.Order buyMarket(string pair, float amount)
 	{
 		static immutable METHOD_URL = "/v2/buy/market/";
 
 		string[string] params;
 		params["amount"] = to!string(amount);
 
-		return request!Json(METHOD_URL ~ pair ~ "/", params);
+		return request!(BS.Order)(METHOD_URL ~ pair ~ "/", params);
 	}
 
 	///
-	Json sellMarket(string pair, float amount)
+	BS.Order sellMarket(string pair, float amount)
 	{
 		static immutable METHOD_URL = "/v2/sell/market/";
 
 		string[string] params;
 		params["amount"] = to!string(amount);
 
-		return request!Json(METHOD_URL ~ pair ~ "/", params);
+		return request!(BS.Order)(METHOD_URL ~ pair ~ "/", params);
 	}
 
 	private auto request(T)(string path, string[string] params)
@@ -155,7 +230,10 @@ final class Bitstamp : BitstampPublicAPI, BitstampPrivateAPI
 		{
 			auto json = res.readJson();
 
-			//logInfo("Response: %s", json);
+			scope(failure)
+			{
+				logError("Response deserialize failed: %s", json);
+			}
 
 			return deserializeJson!T(json);
 		}
