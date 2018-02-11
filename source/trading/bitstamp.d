@@ -40,10 +40,17 @@ static struct BS
 			string datetime;
 		}
 
-		/// In Queue, Open or Finished.
+		/// 
 		string status;
 		///
 		Transaction[] transactions;
+
+		///
+		bool isStatusFinished() const { return this.status == "Finished"; }
+		///
+		bool isStatusOpen() const { return this.status == "Open"; }
+		///
+		bool isStatusInQueue() const { return this.status == "In Queue"; }
 	}
 
 	///
@@ -87,6 +94,28 @@ static struct BS
 		///
 		string id;
 	}
+
+	///
+	struct Balance 
+	{
+		@optional string xrp_balance;
+		@optional string xrp_reserved;
+		@optional string xrp_available;
+
+		@optional string usd_balance;
+		@optional string usd_reserved;
+		@optional string usd_available;
+
+		@optional string eur_balance;
+		@optional string eur_reserved;
+		@optional string eur_available;
+		
+		@optional string btc_balance;
+		@optional string btc_reserved;
+		@optional string btc_available;
+
+		float fee;
+	}
 }
 
 ///
@@ -108,9 +137,11 @@ interface BitstampPrivateAPI
 	///
 	BS.Transactions transactions(string pair);
 	///
-	BS.Order sellMarket(string pari, float amount);
+	BS.Order sellMarket(string pair, float amount);
 	///
-	BS.Order buyMarket(string pari, float amount);
+	BS.Order buyMarket(string pair, float amount);
+	///
+	BS.Balance balance(string pair);
 }
 
 ///
@@ -188,6 +219,16 @@ final class Bitstamp : BitstampPublicAPI, BitstampPrivateAPI
 		params["amount"] = to!string(amount);
 
 		return request!(BS.Order)(METHOD_URL ~ pair ~ "/", params);
+	}
+
+	///
+	BS.Balance balance(string pair)
+	{
+		static immutable METHOD_URL = "/v2/balance/";
+
+		string[string] params;
+
+		return request!(BS.Balance)(METHOD_URL ~ pair ~ "/", params);
 	}
 
 	private auto request(T)(string path, string[string] params)
