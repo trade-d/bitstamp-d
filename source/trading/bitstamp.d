@@ -46,6 +46,32 @@ static struct BS
 		Transaction[] transactions;
 
 		///
+		float priceAverage() const 
+		{
+			float avg = 0;
+
+			foreach(t; transactions)
+				avg += t.price.to!float;
+
+			return avg / cast(float)transactions.length;
+		}
+
+		unittest 
+		{
+			OrderStatus st;
+			Transaction t;
+			t.price = "1.0";
+			st.transactions ~= t;
+			t.price = "2.0";
+			st.transactions ~= t;
+			t.price = "3.0";
+			st.transactions ~= t;
+
+			assert(st.transactions.length == 3);
+			assert(st.priceAverage == 2.0f);
+		}
+
+		///
 		bool isStatusFinished() const { return this.status == "Finished"; }
 		///
 		bool isStatusOpen() const { return this.status == "Open"; }
