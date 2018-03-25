@@ -3,4 +3,4 @@ description "crypto currency trading platform integration based on vibe.d for bi
 authors "Stephan Dilly"
 copyright "Copyright © 2018, Stephan Dilly"
 license "MIT"
-dependency "vibe-d" version="~>0.8.2"
+dependency "vibe-d" version="~>0.8"
